@@ -14,10 +14,12 @@ const apiCotas = express()
 const apiEmbracon = express()
 
 const AdminJSMongoose = require('@adminjs/mongoose')
-const mongoose = require('mongoose')
-const bcrypt = require('bcrypt')
+//const mongoose = require('mongoose')
+//const bcrypt = require('bcrypt')
 let tokenLocal;
 
+
+/*
 const run = async () => {
   await mongoose.connect('mongodb+srv://appconsorcio:40464586828@cluster0.jvr8z.mongodb.net/usuarios?retryWrites=true&w=majority', {
     useNewUrlParser: true,
@@ -31,14 +33,16 @@ const User = mongoose.model('User', {
   email: { type: String, required: true },
   acesso: { type: String, enum: ['Admin', 'Operacional'], required: true },
 })
+*/
 
-const podeEditarUsuarios = ({ currentAdmin }) => currentAdmin && currentAdmin.acesso === 'Admin'
+//const podeEditarUsuarios = ({ currentAdmin }) => currentAdmin && currentAdmin.acesso === 'Admin'
 
 AdminJS.registerAdapter(AdminJSMongoose)
 
 const adminJS = new AdminJS({
   rootPath: '/admin',
-  resources: [
+  /*
+    resources: [
     {
       resource: User,
       options: {
@@ -76,19 +80,14 @@ const adminJS = new AdminJS({
             },
           },
         }
-        /*
-            actions: {
-        edit: { isAccessible: podeEditarUsuarios },
-        delete: { isAccessible: podeEditarUsuarios },
-        new: { isAccessible: podeEditarUsuarios },
-        show: { isAccessible: podeEditarUsuarios },
-        list: { isAccessible: podeEditarUsuarios },
-      }
-      */
-      }
+
     }
-  ],
-  pages: {
+  }
+],
+  */
+
+  /*
+    pages: {
     Bradesco: {
       component: AdminJS.bundle('./src/components/consulta'),
     },
@@ -99,13 +98,14 @@ const adminJS = new AdminJS({
       component: AdminJS.bundle('./src/components/embracon'),
     }
   },
+  */
   branding: {
     companyName: 'Consórcios',
     logo: 'https://s3.amazonaws.com/prd-beanstalk/site/upload/car_house_d6766637e7f135477efb066478c6251d.png',
     softwareBrothers: false,
   },
   dashboard: {
-    component: AdminJS.bundle('./src/components/consulta'),
+    component: AdminJS.bundle('./src/components/embracon'),
   },
   locale: {
     translations: {
@@ -194,8 +194,9 @@ const adminJS = new AdminJS({
   }
 })
 
-//const router = AdminJSExpressjs.buildRouter(adminJS)
+const router = AdminJSExpressjs.buildRouter(adminJS)
 
+/*
 const router = AdminJSExpressjs.buildAuthenticatedRouter(adminJS, {
   authenticate: async (email, senha) => {
     const user = await User.findOne({ email })
@@ -209,6 +210,7 @@ const router = AdminJSExpressjs.buildAuthenticatedRouter(adminJS, {
   },
   cookiePassword: 'some-secret-password-used-to-secure-cookie',
 })
+*/
 
 app.use(adminJS.options.rootPath, router)
 
