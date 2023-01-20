@@ -52,7 +52,7 @@ class embracon extends Component {
 
         axios({
             method: 'get',
-            url: "http://app-consorcios.vps-kinghost.net/:8083",
+            url: "http://app-consorcios.vps-kinghost.net:8083",
 
         }).then(response => {
             //console.log(response.data)
