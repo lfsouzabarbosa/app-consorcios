@@ -235,7 +235,7 @@ apiEmbracon.use(express.json())
 apiEmbracon.use(cors())
 
 
-app.listen(21257, () => console.log('Sistema rodando localhost:21257/admin'))
+app.listen(2125, () => console.log('Sistema rodando localhost:21257/admin'))
 apiTK.listen(8081, () => console.log('API pega token rodando localhost:8081'))
 apiExport.listen(8082, () => console.log('API exporta token rodando localhost:8082'))
 apiEmbracon.listen(8083, () => console.log('API exporta token embracon localhost:8083'))
