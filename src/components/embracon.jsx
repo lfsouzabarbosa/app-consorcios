@@ -30,7 +30,7 @@ class embracon extends Component {
     async bucarCotaInicial() {
         const cotaInicial = this.state.cotaInicial;
         console.log(cotaInicial)
-        console.log(this.state.token)
+        //console.log(this.state.token)
         this.setState({ loader: 1 })
 
 
@@ -39,7 +39,7 @@ class embracon extends Component {
             url: "https://api.embraconnet.com.br/app-cliente/v1/cota/" + cotaInicial + "?access_token=" + this.state.token + "&client_id=530f6324-16c7-3e67-b33f-4115e4205ae6",
 
         }).then(response => {
-            console.log(response.data)
+            //console.log(response.data)
             this.setState({ detalhesCota: response.data[0] })
             this.setState({ cotaDetalhes: 0 })
             this.setState({ loader: 0 })
@@ -166,7 +166,7 @@ class embracon extends Component {
             );
 
         }
-        while (cota == 0) {
+        while (cota == 0) {            
             let data_entrega_bem = detalhesCota.data_entrega_bem;
             let data_devolucao = detalhesCota.data_devolucao;
             let data_contemplacao = detalhesCota.data_contemplacao;
@@ -190,31 +190,27 @@ class embracon extends Component {
                 data_encerramento_FORMATED = detalhesCota.data_encerramento.substring(8, 10) + "/" + detalhesCota.data_encerramento.substring(5, 7) + "/" + detalhesCota.data_encerramento.substring(0, 4)
             }
 
-            let valorBem = detalhesCota.valor_bem.toLocaleString('pt-br', { style: 'currency', currency: 'BRL' });;
-            let totalPago = detalhesCota.valor_total_pago.toLocaleString('pt-br', { style: 'currency', currency: 'BRL' });;
+            let valorBem = detalhesCota.valor_bem.toLocaleString('pt-br', { style: 'currency', currency: 'BRL' });
+            let totalPago = detalhesCota.valor_total_pago.toLocaleString('pt-br', { style: 'currency', currency: 'BRL' });                    
             //{detalhesCota.cota}
             return (
                 <Box display={["block", "flex"]} flexDirection="row" justifyContent="space-between" margin="2%">
-                    <Link onClick={this.cotaAnterior}><TableCell><Text fontSize="h4" fontWeight="5px">Anterior</Text></TableCell></Link>
+                    <Link onClick={this.cotaAnterior}><TableCell><Text fontSize="h4" fontWeight="2px">Anterior</Text></TableCell></Link>
                     <Box flex flexDirection="row" variant="white">
-                        <Table>
+                        <Table >
                             <TableHead>
-                                <TableCell><Text fontSize="h4" fontWeight="5px">Nome</Text></TableCell>
-                                <TableCell><Text fontSize="h4" fontWeight="5px">ID</Text></TableCell>
-                                <TableCell><Text fontSize="h4" fontWeight="5px">Cota</Text></TableCell>
-                                <TableCell><Text fontSize="h4" fontWeight="5px">Grupo</Text></TableCell>
-                                <TableCell><Text fontSize="h4" fontWeight="5px">Bem</Text></TableCell>
-                                <TableCell><Text fontSize="h4" fontWeight="5px">V. bem</Text></TableCell>
-                                <TableCell><Text fontSize="h4" fontWeight="5px">Situação</Text></TableCell>
-                                <TableCell><Text fontSize="h4" fontWeight="5px">Total pago</Text></TableCell>
-                                <TableCell><Text fontSize="h4" fontWeight="5px">Data entrega</Text></TableCell>
-                                <TableCell><Text fontSize="h4" fontWeight="5px">Data devolução</Text></TableCell>
-                                <TableCell><Text fontSize="h4" fontWeight="5px">Data contemplação</Text></TableCell>
-                                <TableCell><Text fontSize="h4" fontWeight="5px">Data encerramento</Text></TableCell>
-
-
-
-
+                                <TableCell><Text fontSize="h5" fontWeight="3px">Nome</Text></TableCell>
+                                <TableCell><Text fontSize="h5" fontWeight="3px">ID</Text></TableCell>
+                                <TableCell><Text fontSize="h5" fontWeight="3px">Cota</Text></TableCell>
+                                <TableCell><Text fontSize="h5" fontWeight="3px">Grupo</Text></TableCell>
+                                <TableCell><Text fontSize="h5" fontWeight="3px">Bem</Text></TableCell>
+                                <TableCell><Text fontSize="h5" fontWeight="3px">V. bem</Text></TableCell>
+                                <TableCell><Text fontSize="h5" fontWeight="3px">Situação</Text></TableCell>
+                                <TableCell><Text fontSize="h5" fontWeight="3px">Total pago</Text></TableCell>
+                                <TableCell><Text fontSize="h5" fontWeight="3px">Data entrega</Text></TableCell>
+                                <TableCell><Text fontSize="h5" fontWeight="3px">Data devolução</Text></TableCell>
+                                <TableCell><Text fontSize="h5" fontWeight="3px">Data contemplação</Text></TableCell>
+                                <TableCell><Text fontSize="h5" fontWeight="3px">Data encerramento</Text></TableCell>
                             </TableHead>
                             <TableBody>
                                 <TableCell><Text fontSize="h5" fontWeight="2px">{detalhesCota.nome_pessoa}</Text></TableCell>
@@ -233,9 +229,7 @@ class embracon extends Component {
                         </Table>
                     </Box>
                     <Link onClick={this.cotaProxima}><TableCell><Text fontSize="h4" fontWeight="2px">Próxima</Text></TableCell></Link>
-
                 </Box>
-
             )
         }
 
@@ -243,7 +237,10 @@ class embracon extends Component {
         let diaEncerramento = encerramento.substring(8, 10);
                 let mesEncerramento = encerramento.substring(5, 7);
                 let anoEncerramento = encerramento.substring(0, 4);
-         <TableCell><Text fontSize="h5" fontWeight="2px">teste</Text></TableCell>
+
+
+
+                                <TableCell><Text fontSize="h5" fontWeight="2px">teste</Text></TableCell>
                                 <TableCell><Text fontSize="h5" fontWeight="2px">teste</Text></TableCell>
                                 <TableCell><Text fontSize="h5" fontWeight="2px">teste</Text></TableCell>
                                 <TableCell><Text fontSize="h5" fontWeight="2px">teste</Text></TableCell>
