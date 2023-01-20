@@ -248,7 +248,9 @@ apiEmbracon.get('/', (req, res) => {
   (async () => {
     const browser = await puppeteer.launch({
        headless: true,
-       args: ['--no-sandbox']
+       args: ['--no-sandbox'],
+       executablePath: '/usr/bin/chromium-browser'
+
     })
     const page = await browser.newPage();
     await page.goto('https://autoatendimento.embracon.com.br/?&_ga=2.56897385.270576145.1672696614-669252956.1670900694#/login');
