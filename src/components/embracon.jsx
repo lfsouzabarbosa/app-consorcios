@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import {
     Input,
     Box,
-    BoxProps,
     Button,
     Text,
     Table,
@@ -49,23 +48,39 @@ class embracon extends Component {
 
     async gerarToken() {
         this.setState({ loader: 1 })
-
-        axios({
-            method: 'get',
-            url: "http://app-consorcios.vps-kinghost.net:8083",
-
+        const headers = {
+            "accept": "application/json, text/plain, */*",
+            "accept-language": "pt-BR,pt;q=0.9",
+            "authorization": "Basic NTMwZjYzMjQtMTZjNy0zZTY3LWIzM2YtNDExNWU0MjA1YWU2OjViNGNjMTVjLWQyZDEtMzM2ZS05NzgwLTlmOTZjZmMyMDM5NQ==",
+            "client_id": "530f6324-16c7-3e67-b33f-4115e4205ae6",
+            "content-type": "application/json",
+            "platform": "web",
+            "version_app": "1.56.00",
+            "Referrer-Policy": "strict-origin-when-cross-origin"
+        };
+        
+        const data = {
+            type: "person",
+            inscricaoNacional: "33592082850",
+            senha: "030909",
+            grant_type: "password"
+        };
+        axios.post('https://api.embraconnet.com.br/app-cliente/v1/login',data, {
+            headers: headers
         }).then(response => {
             //console.log(response.data)
-            this.setState({ token: response.data })
+            this.setState({ token: response.data.access_token })
             this.setState({ loader: 0 })
-        })
+        }).catch(function (error) {
+            console.log(error);
+          });
     };
 
     async cotaAnterior() {
-        console.log('teste voltar')
+        //console.log('teste voltar')
         const cotaInicial = this.state.cotaInicial--;
         console.log(cotaInicial)
-        console.log(this.state.token)
+        //console.log(this.state.token)
 
 
         axios({
@@ -80,11 +95,11 @@ class embracon extends Component {
     };
 
     async cotaProxima() {
-        console.log('teste proxima')
+        //console.log('teste proxima')
         //const i ++;
         const cotaInicial = this.state.cotaInicial++;
-        console.log(cotaInicial)
-        console.log(this.state.token)
+        //console.log(cotaInicial)
+        //console.log(this.state.token)
 
 
         axios({
@@ -107,7 +122,7 @@ class embracon extends Component {
         while (loader == 1) {
             return (
                 <div align="center">
-                    <Text fontSize="h4" fontWeight="5px" alignSelf="center"  justifyContent="space-between" margin="2%">Por favor, aguarde...</Text>
+                    <Text fontSize="h4" fontWeight="5px" alignSelf="center" justifyContent="space-between" margin="2%">Por favor, aguarde...</Text>
                     <Loader />
                 </div>
             );
@@ -166,7 +181,7 @@ class embracon extends Component {
             );
 
         }
-        while (cota == 0) {            
+        while (cota == 0) {
             let data_entrega_bem = detalhesCota.data_entrega_bem;
             let data_devolucao = detalhesCota.data_devolucao;
             let data_contemplacao = detalhesCota.data_contemplacao;
@@ -191,7 +206,7 @@ class embracon extends Component {
             }
 
             let valorBem = detalhesCota.valor_bem.toLocaleString('pt-br', { style: 'currency', currency: 'BRL' });
-            let totalPago = detalhesCota.valor_total_pago.toLocaleString('pt-br', { style: 'currency', currency: 'BRL' });                    
+            let totalPago = detalhesCota.valor_total_pago.toLocaleString('pt-br', { style: 'currency', currency: 'BRL' });
             //{detalhesCota.cota}
             return (
                 <Box display={["block", "flex"]} flexDirection="row" justifyContent="space-between" margin="2%">

@@ -14,12 +14,12 @@ const apiCotas = express()
 const apiEmbracon = express()
 
 const AdminJSMongoose = require('@adminjs/mongoose')
-//const mongoose = require('mongoose')
-//const bcrypt = require('bcrypt')
+const mongoose = require('mongoose')
+const bcrypt = require('bcrypt')
 let tokenLocal;
 
 
-/*
+
 const run = async () => {
   await mongoose.connect('mongodb+srv://appconsorcio:40464586828@cluster0.jvr8z.mongodb.net/usuarios?retryWrites=true&w=majority', {
     useNewUrlParser: true,
@@ -33,15 +33,15 @@ const User = mongoose.model('User', {
   email: { type: String, required: true },
   acesso: { type: String, enum: ['Admin', 'Operacional'], required: true },
 })
-*/
 
-//const podeEditarUsuarios = ({ currentAdmin }) => currentAdmin && currentAdmin.acesso === 'Admin'
+
+const podeEditarUsuarios = ({ currentAdmin }) => currentAdmin && currentAdmin.acesso === 'Admin'
 
 AdminJS.registerAdapter(AdminJSMongoose)
 
 const adminJS = new AdminJS({
-  rootPath: '',
-  /*
+  rootPath: '/admin',
+  
     resources: [
     {
       resource: User,
@@ -84,7 +84,7 @@ const adminJS = new AdminJS({
     }
   }
 ],
-  */
+
 
   /*
     pages: {
@@ -194,7 +194,21 @@ const adminJS = new AdminJS({
   }
 })
 
-const router = AdminJSExpressjs.buildRouter(adminJS)
+//const router = AdminJSExpressjs.buildRouter(adminJS)
+const router = AdminJSExpressjs.buildAuthenticatedRouter(adminJS, {
+  authenticate: async (email, senha) => {
+    const user = await User.findOne({ email })
+    if (user) {
+      const matched = await bcrypt.compare(senha, user.password)
+      if (matched) {
+        return user
+      }
+    }
+    return false
+  },
+  cookiePassword: 'some-secret-password-used-to-secure-cookie',
+})
+
 
 /*
 const router = AdminJSExpressjs.buildAuthenticatedRouter(adminJS, {
