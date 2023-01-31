@@ -101,7 +101,7 @@ const adminJS = new AdminJS({
   */
   branding: {
     companyName: 'Consórcios',
-    logo: 'https://s3.amazonaws.com/prd-beanstalk/site/upload/car_house_d6766637e7f135477efb066478c6251d.png',
+    logo: 'https://gazetadasemana.com.br/images/noticias/48116/28090917_Logo_Embra.png.png',
     softwareBrothers: false,
   },
   dashboard: {
