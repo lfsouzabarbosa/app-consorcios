@@ -12,7 +12,7 @@ import {
     Loader
 } from '@adminjs/design-system';
 import axios from "axios";
-
+import { Base64 } from "js-base64";
 class embracon extends Component {
     constructor(props) {
         super(props);
@@ -58,14 +58,14 @@ class embracon extends Component {
             "version_app": "1.56.00",
             "Referrer-Policy": "strict-origin-when-cross-origin"
         };
-        
+
         const data = {
             type: "person",
             inscricaoNacional: "33592082850",
             senha: "030909",
             grant_type: "password"
         };
-        axios.post('https://api.embraconnet.com.br/app-cliente/v1/login',data, {
+        axios.post('https://api.embraconnet.com.br/app-cliente/v1/login', data, {
             headers: headers
         }).then(response => {
             //console.log(response.data)
@@ -73,7 +73,7 @@ class embracon extends Component {
             this.setState({ loader: 0 })
         }).catch(function (error) {
             console.log(error);
-          });
+        });
     };
 
     async cotaAnterior() {
@@ -100,7 +100,7 @@ class embracon extends Component {
         const cotaInicial = this.state.cotaInicial++;
         //console.log(cotaInicial)
         //console.log(this.state.token)
-
+        //" + this.state.token + "
 
         axios({
             method: 'get',
@@ -182,15 +182,41 @@ class embracon extends Component {
 
         }
         while (cota == 0) {
+            //const result = new Uint8Array(13)
+            //let tokenDecode = base64Decode(detalhesCota.token, result)
+            //console.log(tokenDecode)
+            //console.log(atob(detalhesCota.token))
+
+            /*
+                        let tokenEncode = this.state.detalhesCota.token.substr(37, 268)
+            let tokenEncondeString = toString(tokenEncode)
+            let tokenDecodeString = Base64.decode(tokenEncondeString)
+            let tokenDecodeJson = JSON.parse(tokenDecodeString)
+            console.log(tokenDecodeJson)
+            let documento = tokenDecodeJson.unique_name
+            console.log(documento)
+
+            */
+            let tokenEncode2 = this.state.detalhesCota.token.substr(37, 60)
+            let tokenDecodeString = Base64.decode(tokenEncode2)
+        //let tokenDecodeString = window.atob(tokenEncode)
+        //console.log(atob(new String(tokenEncode)))
+        let tokenDecodeStringFormated = tokenDecodeString.replace(',"sub":"null","jt',"").replace(',"sub":"null"',"")+"}"
+        let tokenDecodeStringFormatedNoComma = tokenDecodeStringFormated.replace(",","")
+        let documento = JSON.parse(tokenDecodeStringFormatedNoComma)
+
+
             let data_entrega_bem = detalhesCota.data_entrega_bem;
             let data_devolucao = detalhesCota.data_devolucao;
             let data_contemplacao = detalhesCota.data_contemplacao;
             let data_encerramento = detalhesCota.data_encerramento;
+            let data_adesao = detalhesCota.data_adesao;
 
             let data_entrega_bem_FORMATED;
             let data_devolucao_FORMATED;
             let data_contemplacao_FORMATED;
             let data_encerramento_FORMATED;
+            let data_adesao_FORMATED;
 
             if (data_entrega_bem != null) {
                 data_entrega_bem_FORMATED = detalhesCota.data_entrega_bem.substring(8, 10) + "/" + detalhesCota.data_entrega_bem.substring(5, 7) + "/" + detalhesCota.data_entrega_bem.substring(0, 4)
@@ -204,46 +230,103 @@ class embracon extends Component {
             if (data_encerramento != null) {
                 data_encerramento_FORMATED = detalhesCota.data_encerramento.substring(8, 10) + "/" + detalhesCota.data_encerramento.substring(5, 7) + "/" + detalhesCota.data_encerramento.substring(0, 4)
             }
+            if (data_adesao != null) {
+                data_adesao_FORMATED = detalhesCota.data_adesao.substring(8, 10) + "/" + detalhesCota.data_adesao.substring(5, 7) + "/" + detalhesCota.data_adesao.substring(0, 4)
+            }
+            
 
             let valorBem = detalhesCota.valor_bem.toLocaleString('pt-br', { style: 'currency', currency: 'BRL' });
             let totalPago = detalhesCota.valor_total_pago.toLocaleString('pt-br', { style: 'currency', currency: 'BRL' });
+
+            let perc_total_pago = detalhesCota.perc_total_pago.toLocaleString('pt-br', { style: 'currency', currency: 'BRL' });
+            let valor_saldo_devedor = detalhesCota.valor_saldo_devedor.toLocaleString('pt-br', { style: 'currency', currency: 'BRL' });
+
+
             //{detalhesCota.cota}
             return (
-                <Box display={["block", "flex"]} flexDirection="row" justifyContent="space-between" margin="2%">
-                    <Link onClick={this.cotaAnterior}><TableCell><Text fontSize="h4" fontWeight="2px">Anterior</Text></TableCell></Link>
-                    <Box flex flexDirection="row" variant="white">
-                        <Table >
-                            <TableHead>
-                                <TableCell><Text fontSize="h5" fontWeight="3px">Nome</Text></TableCell>
-                                <TableCell><Text fontSize="h5" fontWeight="3px">ID</Text></TableCell>
-                                <TableCell><Text fontSize="h5" fontWeight="3px">Cota</Text></TableCell>
-                                <TableCell><Text fontSize="h5" fontWeight="3px">Grupo</Text></TableCell>
-                                <TableCell><Text fontSize="h5" fontWeight="3px">Bem</Text></TableCell>
-                                <TableCell><Text fontSize="h5" fontWeight="3px">V. bem</Text></TableCell>
-                                <TableCell><Text fontSize="h5" fontWeight="3px">Situação</Text></TableCell>
-                                <TableCell><Text fontSize="h5" fontWeight="3px">Total pago</Text></TableCell>
-                                <TableCell><Text fontSize="h5" fontWeight="3px">Data entrega</Text></TableCell>
-                                <TableCell><Text fontSize="h5" fontWeight="3px">Data devolução</Text></TableCell>
-                                <TableCell><Text fontSize="h5" fontWeight="3px">Data contemplação</Text></TableCell>
-                                <TableCell><Text fontSize="h5" fontWeight="3px">Data encerramento</Text></TableCell>
-                            </TableHead>
-                            <TableBody>
-                                <TableCell><Text fontSize="h5" fontWeight="2px">{detalhesCota.nome_pessoa}</Text></TableCell>
-                                <TableCell><Text fontSize="h5" fontWeight="2px">{detalhesCota.id_cota}</Text></TableCell>
-                                <TableCell><Text fontSize="h5" fontWeight="2px">{detalhesCota.cota}</Text></TableCell>
-                                <TableCell><Text fontSize="h5" fontWeight="2px">{detalhesCota.grupo}</Text></TableCell>
-                                <TableCell><Text fontSize="h5" fontWeight="2px">{detalhesCota.nome_bem}</Text></TableCell>
-                                <TableCell><Text fontSize="h5" fontWeight="2px">{valorBem}</Text></TableCell>
-                                <TableCell><Text fontSize="h5" fontWeight="2px">{detalhesCota.situacao_cota}</Text></TableCell>
-                                <TableCell><Text fontSize="h5" fontWeight="2px">{totalPago}</Text></TableCell>
-                                <TableCell><Text fontSize="h5" fontWeight="2px">{data_entrega_bem_FORMATED}</Text></TableCell>
-                                <TableCell><Text fontSize="h5" fontWeight="2px">{data_devolucao_FORMATED}</Text></TableCell>
-                                <TableCell><Text fontSize="h5" fontWeight="2px">{data_contemplacao_FORMATED}</Text></TableCell>
-                                <TableCell><Text fontSize="h5" fontWeight="2px">{data_encerramento_FORMATED}</Text></TableCell>
-                            </TableBody>
-                        </Table>
-                    </Box>
-                    <Link onClick={this.cotaProxima}><TableCell><Text fontSize="h4" fontWeight="2px">Próxima</Text></TableCell></Link>
+                <Box justifyContent="space-between" margin="2%" variant="white">
+                    <Table display={["block"]} justifyContent="space-between">
+                        <TableHead >
+                            <TableCell><Text fontSize="h5" fontWeight="1px">Nome</Text></TableCell>
+                            <TableCell><Text fontSize="h5" fontWeight="1px">ID</Text></TableCell>
+                            <TableCell><Text fontSize="h5" fontWeight="1px">Cota</Text></TableCell>
+                            <TableCell><Text fontSize="h5" fontWeight="1px">Grupo</Text></TableCell>
+                            <TableCell><Text fontSize="h5" fontWeight="1px">Bem</Text></TableCell>
+                            <TableCell><Text fontSize="h5" fontWeight="1px">V. bem</Text></TableCell>
+                            <TableCell><Text fontSize="h5" fontWeight="1px">Situação</Text></TableCell>
+                            <TableCell><Text fontSize="h5" fontWeight="1px">Total pago</Text></TableCell>
+                            <TableCell><Text fontSize="h5" fontWeight="1px">Data entrega</Text></TableCell>
+                            <TableCell><Text fontSize="h5" fontWeight="1px">Data devolução</Text></TableCell>
+                            <TableCell><Text fontSize="h5" fontWeight="1px">Data adesão</Text></TableCell>
+                        </TableHead>
+                        <TableBody>
+                            <TableCell><Text fontSize="h5" fontWeight="2px">{detalhesCota.nome_pessoa}</Text></TableCell>
+                            <TableCell><Text fontSize="h5" fontWeight="2px">{detalhesCota.id_cota}</Text></TableCell>
+                            <TableCell><Text fontSize="h5" fontWeight="2px">{detalhesCota.cota}</Text></TableCell>
+                            <TableCell><Text fontSize="h5" fontWeight="2px">{detalhesCota.grupo}</Text></TableCell>
+                            <TableCell><Text fontSize="h5" fontWeight="2px">{detalhesCota.nome_bem}</Text></TableCell>
+                            <TableCell><Text fontSize="h5" fontWeight="2px">{valorBem}</Text></TableCell>
+                            <TableCell><Text fontSize="h5" fontWeight="2px">{detalhesCota.situacao_cota}</Text></TableCell>
+                            <TableCell><Text fontSize="h5" fontWeight="2px">{totalPago}</Text></TableCell>
+                            <TableCell><Text fontSize="h5" fontWeight="2px">{data_entrega_bem_FORMATED}</Text></TableCell>
+                            <TableCell><Text fontSize="h5" fontWeight="2px">{data_devolucao_FORMATED}</Text></TableCell>
+                            <TableCell><Text fontSize="h5" fontWeight="2px">{data_adesao_FORMATED}</Text></TableCell>
+                        </TableBody>
+                    </Table>
+                    <br>
+                    </br>
+                    <br>
+                    </br>
+                    <br>
+                    </br>
+                    <Table>
+                        <TableHead>
+                            <TableCell><Text fontSize="h5" fontWeight="1px">Data contemplação</Text></TableCell>
+                            <TableCell><Text fontSize="h5" fontWeight="1px">Data encerramento</Text></TableCell>
+                            <TableCell><Text fontSize="h5" fontWeight="1px">% Total pago</Text></TableCell>
+                            <TableCell><Text fontSize="h5" fontWeight="1px">Saldo devedor</Text></TableCell>
+                            <TableCell><Text fontSize="h5" fontWeight="1px">Parcelas atrasadas</Text></TableCell>
+                            <TableCell><Text fontSize="h5" fontWeight="1px">Parcelas pagas</Text></TableCell>
+                            <TableCell><Text fontSize="h5" fontWeight="1px">CPF/CNPJ</Text></TableCell>
+                        </TableHead>
+                        <TableBody>
+                            <TableCell><Text fontSize="h5" fontWeight="2px">{data_contemplacao_FORMATED}</Text></TableCell>
+                            <TableCell><Text fontSize="h5" fontWeight="2px">{data_encerramento_FORMATED}</Text></TableCell>
+                            <TableCell><Text fontSize="h5" fontWeight="2px">{perc_total_pago}</Text></TableCell>
+                            <TableCell><Text fontSize="h5" fontWeight="2px">{valor_saldo_devedor}</Text></TableCell>
+                            <TableCell><Text fontSize="h5" fontWeight="2px">{detalhesCota.quantidade_parcelas_atraso}</Text></TableCell>
+                            <TableCell><Text fontSize="h5" fontWeight="2px">{detalhesCota.quantidade_parcelas_pagas}</Text></TableCell>
+                            <TableCell><Text fontSize="h5" fontWeight="2px">{documento.unique_name}</Text></TableCell>
+                        </TableBody>
+                    </Table>
+                    <br>
+                    </br>
+                    <br>
+                    </br>
+                    <br>
+                    </br>
+                    <Table>
+                        <TableHead>
+
+                        </TableHead>
+                        <TableBody>
+                            <TableCell><Button onClick={this.cotaAnterior}><Text fontSize="h5" fontWeight="2px">Anterior</Text></Button></TableCell>
+                            <TableCell></TableCell>
+                            <TableCell></TableCell>
+                            <TableCell></TableCell>
+                            <TableCell></TableCell>
+                            <TableCell></TableCell>
+                            <TableCell></TableCell>
+                            <TableCell></TableCell>
+                            <TableCell></TableCell>
+                            <TableCell></TableCell>
+                            <TableCell></TableCell>
+                            <TableCell></TableCell>
+                            <TableCell></TableCell>
+                            <TableCell></TableCell>
+                            <TableCell><Button onClick={this.cotaProxima}><Text fontSize="h5" fontWeight="2px">Próxima</Text></Button></TableCell>
+                        </TableBody>
+                    </Table>
                 </Box>
             )
         }

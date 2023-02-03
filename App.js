@@ -2,7 +2,7 @@ const AdminJS = require('adminjs')
 const AdminJSExpressjs = require('@adminjs/express')
 const axios = require('axios');
 
-const bodyParser = require('body-parser') 
+const bodyParser = require('body-parser')
 
 const cors = require('cors')
 const morgan = require('morgan')
@@ -41,8 +41,8 @@ AdminJS.registerAdapter(AdminJSMongoose)
 
 const adminJS = new AdminJS({
   rootPath: '/admin',
-  
-    resources: [
+
+  resources: [
     {
       resource: User,
       options: {
@@ -60,7 +60,7 @@ const adminJS = new AdminJS({
           _id: {
             isVisible: { list: false, filter: false, show: false, edit: false },
           },
-        }, 
+        },
         actions: {
           edit: { isAccessible: podeEditarUsuarios },
           delete: { isAccessible: podeEditarUsuarios },
@@ -81,9 +81,9 @@ const adminJS = new AdminJS({
           },
         }
 
+      }
     }
-  }
-],
+  ],
 
 
   /*
@@ -254,7 +254,29 @@ apiTK.listen(8081, () => console.log('API pega token rodando localhost:8081'))
 apiExport.listen(8082, () => console.log('API exporta token rodando localhost:8082'))
 apiEmbracon.listen(8083, () => console.log('API exporta token embracon localhost:8083'))
 
-apiEmbracon.get('/', (req, res) => { 
+apiEmbracon.get('/', (req, res) => {
+  const tokenEncode = req.query.tokenEncode
+  console.log("api token encode", tokenEncode)
+
+  const puppeteer = require('puppeteer');
+  (async () => {
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox'],
+      executablePath: '/usr/bin/chromium-browser'
+
+    })
+    const page = await browser.newPage();
+    await page.goto('https://www.base64decode.org/');
+    //await page.waitForSelector('input[name=inscricaoNacional]');
+    await page.type('input[name=input]', tokenEncode, { delay: 100 });
+    //await page.click('button[type="submit"]', { delay: 100 });
+    await page.screenshot({ path: 'buddy-screenshot.png', delay: 10000 });
+  })()
+    .then(console.log('cantou!'))
+
+  /*
+
   const email = req.query.email
   const senha = req.query.senha
 
@@ -282,76 +304,77 @@ apiEmbracon.get('/', (req, res) => {
         console.log(">>>>>", dados.access_token)
         return res.json(dados.access_token);
       }
-
     })
     //await page.screenshot({path: 'buddy-screenshot.png', delay: 10000});
-})()
-.then(console.log('cantou!'))
+  */
+
 })
 
 
-apiTK.get('/', (req, res) => { 
+apiTK.get('/', (req, res) => {
   const grupo = req.query.grupo
   const cota = req.query.cota
   const documento = req.query.documento
   const contrato = req.query.contrato
   let apiKey;
-  let tk; 
-  let chave; 
+  let tk;
+  let chave;
   const puppeteer = require('puppeteer');
   (async () => {
-      const browser = await puppeteer.launch({
-         headless: true,
-         args: ['--no-sandbox']
-      })
-      const page = await browser.newPage();
-      await page.goto('https://canalconsorciado.bradesco.com.br/valor-receber');
-      await page.waitForSelector('input[name=grupo]');
-      await page.type('input[name=grupo]', grupo, { delay: 100 }); // '4830'
-      await page.waitForSelector('input[name=cota]');
-      await page.type('input[name=cota]', cota, { delay: 100 }); // '23'
-      await page.waitForSelector('input[name=inscricaoNacional]');
-      await page.type('input[name=inscricaoNacional]', documento, { delay: 100 }); // '51941163653'
-      await page.waitForSelector('input[name=numeroContrato]');
-      await page.type('input[name=numeroContrato]', contrato, { delay: 100 }); // '109242563'
-      await page.click('button[type="submit"]');
+    const browser = await puppeteer.launch({
+      //headless: true,
+      args: ["--no-sandbox",
+        "--disable-setuid-sandbox"],
+      executablePath: '/usr/bin/chromium-browser'
+    })
+    const page = await browser.newPage();
+    await page.goto('https://canalconsorciado.bradesco.com.br/valor-receber');
+    await page.waitForSelector('input[name=grupo]');
+    await page.type('input[name=grupo]', grupo, { delay: 100 }); // '4830'
+    await page.waitForSelector('input[name=cota]');
+    await page.type('input[name=cota]', cota, { delay: 100 }); // '23'
+    await page.waitForSelector('input[name=inscricaoNacional]');
+    await page.type('input[name=inscricaoNacional]', documento, { delay: 100 }); // '51941163653'
+    await page.waitForSelector('input[name=numeroContrato]');
+    await page.type('input[name=numeroContrato]', contrato, { delay: 100 }); // '109242563'
+    await page.click('button[type="submit"]');
 
-      page.on('request', async (request) => {
-          //console.log('<<', request.url())
-          let url = request.url()
-          let dados = request.headers()
-          if (url == 'https://canalconsorciado.bradesco.com.br/GatewayAutoAtendimento/autoatendimento/v1/cotas') {
-              tk = dados.authorization
-              if (tk != undefined) {
-                  apiKey = tk.replace('Bearer ', '')
-              }
-              chave = apiKey;
-              return res.json(chave);
-              /*
+    page.on('request', async (request) => {
+      //console.log('<<', request.url())
+      let url = request.url()
+      let dados = request.headers()
+      if (url == 'https://canalconsorciado.bradesco.com.br/GatewayAutoAtendimento/autoatendimento/v1/cotas') {
+        tk = dados.authorization
+        if (tk != undefined) {
+          apiKey = tk.replace('Bearer ', '')
+        }
+        chave = apiKey;
+        return res.json(chave);
+        /*
 
-                 axios({
-                method: 'get',
-                url: "http://localhost:8082",
-                params: {
-                  token: chave
-                }
-              });   
-              //console.log(chave);
-              */
-           
+           axios({
+          method: 'get',
+          url: "http://localhost:8082",
+          params: {
+            token: chave
           }
-      })
-  })()
-  .then(console.log('cantou!'))
+        });   
+        //console.log(chave);
+        */
+
+      }
+    })
+  })
+    .then(console.log('cantou!'))
 })
 
-apiExport.get('/', (req, res) => { 
+apiExport.get('/', (req, res) => {
   tokenLocal = req.query.token
 
   console.log('>> bateu na api', tokenLocal);
 
   return res.json(tokenLocal);
-    
+
   /*
       axios({
     method: 'get',
