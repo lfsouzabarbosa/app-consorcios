@@ -12,6 +12,7 @@ const apiTK = express()
 const apiExport = express()
 const apiCotas = express()
 const apiEmbracon = express()
+const fs = require('fs');
 
 const AdminJSMongoose = require('@adminjs/mongoose')
 const mongoose = require('mongoose')
@@ -86,19 +87,13 @@ const adminJS = new AdminJS({
   ],
 
 
-  /*
-    pages: {
-    Bradesco: {
-      component: AdminJS.bundle('./src/components/consulta'),
-    },
-    Porto: {
-      component: AdminJS.bundle('./src/components/portoSenha'),
-    },
-    Embracon: {
-      component: AdminJS.bundle('./src/components/embracon'),
+
+  pages: {
+    Robo: {
+      component: AdminJS.bundle('./src/components/embraconRobo'),
     }
   },
-  */
+
   branding: {
     companyName: 'Consórcios',
     logo: 'https://gazetadasemana.com.br/images/noticias/48116/28090917_Logo_Embra.png.png',
@@ -203,7 +198,7 @@ const router = AdminJSExpressjs.buildAuthenticatedRouter(adminJS, {
       if (matched) {
         return user
       }
-    }
+    } 
     return false
   },
   cookiePassword: 'some-secret-password-used-to-secure-cookie',
@@ -218,7 +213,7 @@ const router = AdminJSExpressjs.buildAuthenticatedRouter(adminJS, {
       const matched = await bcrypt.compare(senha, user.password)
       if (matched) {
         return user
-      }
+      } 
     }
     return false
   },
@@ -255,58 +250,46 @@ apiExport.listen(8082, () => console.log('API exporta token rodando localhost:80
 apiEmbracon.listen(8083, () => console.log('API exporta token embracon localhost:8083'))
 
 apiEmbracon.get('/', (req, res) => {
-  const tokenEncode = req.query.tokenEncode
-  console.log("api token encode", tokenEncode)
-
-  const puppeteer = require('puppeteer');
-  (async () => {
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox'],
-      executablePath: '/usr/bin/chromium-browser'
-
-    })
-    const page = await browser.newPage();
-    await page.goto('https://www.base64decode.org/');
-    //await page.waitForSelector('input[name=inscricaoNacional]');
-    await page.type('input[name=input]', tokenEncode, { delay: 100 });
-    //await page.click('button[type="submit"]', { delay: 100 });
-    await page.screenshot({ path: 'buddy-screenshot.png', delay: 10000 });
-  })()
-    .then(console.log('cantou!'))
-
-  /*
-
-  const email = req.query.email
-  const senha = req.query.senha
-
-  const puppeteer = require('puppeteer');
-  (async () => {
-    const browser = await puppeteer.launch({
-       headless: true,
-       args: ['--no-sandbox'],
-       executablePath: '/usr/bin/chromium-browser'
-
-    })
-    const page = await browser.newPage();
-    await page.goto('https://autoatendimento.embracon.com.br/?&_ga=2.56897385.270576145.1672696614-669252956.1670900694#/login');
-    //await page.waitForSelector('input[name=inscricaoNacional]');
-    await page.type('input[type=text]', '81929510063', { delay: 100 }); 
-    await page.type('input[type=password]', '030909', { delay: 100 }); /// '4830'
-    //await page.click('button[type="submit"]', { delay: 100 });
-    await page.keyboard.press('Enter',  { delay: 1000 }); // Enter Key
-
-    await page.on('request', async (request) => {
-      let url = request.url()
-      //console.log('<<', request.url())
-      let dados = request.headers()
-      if (url == 'https://api.embraconnet.com.br/app-cliente/v1/parceiros') {
-        console.log(">>>>>", dados.access_token)
-        return res.json(dados.access_token);
-      }
-    })
-    //await page.screenshot({path: 'buddy-screenshot.png', delay: 10000});
-  */
+  const cota = req.query.cota
+  const tokenRobo = req.query.tokenRobo
+  console.log("api token encode", cota)
+  const timer = (seconds) => {  
+    let time = seconds * 3000
+    return new Promise(res => setTimeout(res, time))
+  }
+  
+  async function doSomething() { 
+    //let tokenEnbracom = "deb6fe32-540d-4701-a296-be568039723d";
+    for (let i = cota; i < 10000000; i++) {
+      //console.log("Looping... " + i);   \    
+                         
+      axios({           
+        method: 'get' ,        
+        url: "https://api.embraconnet.com.br/app-cliente/v1/cota/" + i + "?access_token=" + tokenRobo + "&client_id=530f6324-16c7-3e67-b33f-4115e4205ae6",
+  
+      }).then(response => {  
+        console.log(response.data[0].id_cota)
+        if (response.data[0].data_entrega_bem == null && response.data[0].data_devolucao == null && response.data[0].data_contemplacao != null && response.data[0].valor_total_pago > 30000 && response.data[0].situacao_cota === "cancelada") {
+          console.log("FILTRADA CANCELADA>>", response.data[0].id_cota); 
+        }
+        if (response.data[0].data_entrega_bem == null && response.data[0].data_devolucao == null && response.data[0].data_contemplacao == null && response.data[0].valor_total_pago > 30000 && response.data[0].situacao_cota === "cancelada") {
+          console.log("FILTRADA CANCELADA NAO CONTEMPLADA>>", response.data[0].id_cota);
+        } 
+        if (response.data[0].data_entrega_bem == null && response.data[0].data_devolucao == null && response.data[0].data_contemplacao != null && response.data[0].valor_total_pago > 30000 && response.data[0].situacao_cota === "quitada") {
+          console.log("FILTRADA QUITADA>>", response.data[0].id_cota);
+        } 
+        if (response.data[0].data_entrega_bem == null && response.data[0].data_devolucao == null && response.data[0].data_contemplacao != null && response.data[0].valor_total_pago > 30000 && response.data[0].situacao_cota === "ativa") {
+          console.log("FILTRADA ATIVA>>", response.data[0].id_cota);
+        }   
+        if (response.data[0].data_entrega_bem == null && response.data[0].data_devolucao == null && response.data[0].data_contemplacao == null && response.data[0].valor_total_pago > 30000 && response.data[0].situacao_cota === "ativa") {
+          console.log("FILTRADA ATIVA NAO CONTEMPLADA>>", response.data[0].id_cota);
+        }   
+      })      
+  
+      await timer(2);
+    } 
+  } 
+  doSomething();
 
 })
 
@@ -317,7 +300,7 @@ apiTK.get('/', (req, res) => {
   const documento = req.query.documento
   const contrato = req.query.contrato
   let apiKey;
-  let tk;
+  let tk; 
   let chave;
   const puppeteer = require('puppeteer');
   (async () => {
@@ -357,14 +340,14 @@ apiTK.get('/', (req, res) => {
           url: "http://localhost:8082",
           params: {
             token: chave
-          }
+          } 
         });   
         //console.log(chave);
         */
 
       }
     })
-  })
+  }) 
     .then(console.log('cantou!'))
 })
 

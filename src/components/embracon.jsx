@@ -29,12 +29,13 @@ class embracon extends Component {
     async bucarCotaInicial() {
         const cotaInicial = this.state.cotaInicial;
         console.log(cotaInicial)
+        //let tokenEnbracom = "42275ca9-fcb5-4828-8cc8-db8af3d8f7f1";
         //console.log(this.state.token)
         this.setState({ loader: 1 })
 
-
-        axios({
-            method: 'get',
+ 
+        axios({ 
+            method: 'get',  
             url: "https://api.embraconnet.com.br/app-cliente/v1/cota/" + cotaInicial + "?access_token=" + this.state.token + "&client_id=530f6324-16c7-3e67-b33f-4115e4205ae6",
 
         }).then(response => {
