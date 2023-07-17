@@ -88,19 +88,23 @@ const adminJS = new AdminJS({
 
 
 
-  pages: {
-    Robo: {
-      component: AdminJS.bundle('./src/components/embraconRobo'),
+   pages: {
+     Ademicon: {
+       component: AdminJS.bundle('./src/components/ademicon'),
+     },
+     Scania: {
+      component: AdminJS.bundle('./src/components/scania'),
     }
-  },
+   },
 
   branding: {
     companyName: 'Consórcios',
-    logo: 'https://gazetadasemana.com.br/images/noticias/48116/28090917_Logo_Embra.png.png',
+    logo: 'https://www.r7consorcios.com.br/assets/img/home.png',
+    //logo: 'https://www.quisto.com.br/wp-content/uploads/2021/05/quisto-seguro-consorcio-banner-1-1024x576.png',
     softwareBrothers: false,
   },
-  dashboard: {
-    component: AdminJS.bundle('./src/components/embracon'),
+    dashboard: {
+    component: AdminJS.bundle('./src/components/dashboard'),
   },
   locale: {
     translations: {
@@ -198,7 +202,7 @@ const router = AdminJSExpressjs.buildAuthenticatedRouter(adminJS, {
       if (matched) {
         return user
       }
-    } 
+    }
     return false
   },
   cookiePassword: 'some-secret-password-used-to-secure-cookie',
@@ -244,7 +248,7 @@ apiEmbracon.use(express.json())
 apiEmbracon.use(cors())
 
 
-app.listen(9999, () => console.log('Sistema rodando localhost:21257/admin'))
+app.listen(9999, () => console.log('Sistema rodando localhost:9999/admin'))
 apiTK.listen(8081, () => console.log('API pega token rodando localhost:8081'))
 apiExport.listen(8082, () => console.log('API exporta token rodando localhost:8082'))
 apiEmbracon.listen(8083, () => console.log('API exporta token embracon localhost:8083'))
@@ -253,42 +257,42 @@ apiEmbracon.get('/', (req, res) => {
   const cota = req.query.cota
   const tokenRobo = req.query.tokenRobo
   console.log("api token encode", cota)
-  const timer = (seconds) => {  
+  const timer = (seconds) => {
     let time = seconds * 3000
     return new Promise(res => setTimeout(res, time))
   }
-  
-  async function doSomething() { 
+
+  async function doSomething() {
     //let tokenEnbracom = "deb6fe32-540d-4701-a296-be568039723d";
     for (let i = cota; i < 10000000; i++) {
       //console.log("Looping... " + i);   \    
-                         
-      axios({           
-        method: 'get' ,        
+
+      axios({
+        method: 'get',
         url: "https://api.embraconnet.com.br/app-cliente/v1/cota/" + i + "?access_token=" + tokenRobo + "&client_id=530f6324-16c7-3e67-b33f-4115e4205ae6",
-  
-      }).then(response => {  
+
+      }).then(response => {
         console.log(response.data[0].id_cota)
         if (response.data[0].data_entrega_bem == null && response.data[0].data_devolucao == null && response.data[0].data_contemplacao != null && response.data[0].valor_total_pago > 30000 && response.data[0].situacao_cota === "cancelada") {
-          console.log("FILTRADA CANCELADA>>", response.data[0].id_cota); 
+          console.log("FILTRADA CANCELADA>>", response.data[0].id_cota);
         }
         if (response.data[0].data_entrega_bem == null && response.data[0].data_devolucao == null && response.data[0].data_contemplacao == null && response.data[0].valor_total_pago > 30000 && response.data[0].situacao_cota === "cancelada") {
           console.log("FILTRADA CANCELADA NAO CONTEMPLADA>>", response.data[0].id_cota);
-        } 
+        }
         if (response.data[0].data_entrega_bem == null && response.data[0].data_devolucao == null && response.data[0].data_contemplacao != null && response.data[0].valor_total_pago > 30000 && response.data[0].situacao_cota === "quitada") {
           console.log("FILTRADA QUITADA>>", response.data[0].id_cota);
-        } 
+        }
         if (response.data[0].data_entrega_bem == null && response.data[0].data_devolucao == null && response.data[0].data_contemplacao != null && response.data[0].valor_total_pago > 30000 && response.data[0].situacao_cota === "ativa") {
           console.log("FILTRADA ATIVA>>", response.data[0].id_cota);
-        }   
+        }
         if (response.data[0].data_entrega_bem == null && response.data[0].data_devolucao == null && response.data[0].data_contemplacao == null && response.data[0].valor_total_pago > 30000 && response.data[0].situacao_cota === "ativa") {
           console.log("FILTRADA ATIVA NAO CONTEMPLADA>>", response.data[0].id_cota);
-        }   
-      })      
-  
+        }
+      })
+
       await timer(2);
-    } 
-  } 
+    }
+  }
   doSomething();
 
 })
@@ -300,7 +304,7 @@ apiTK.get('/', (req, res) => {
   const documento = req.query.documento
   const contrato = req.query.contrato
   let apiKey;
-  let tk; 
+  let tk;
   let chave;
   const puppeteer = require('puppeteer');
   (async () => {
@@ -347,7 +351,7 @@ apiTK.get('/', (req, res) => {
 
       }
     })
-  }) 
+  })
     .then(console.log('cantou!'))
 })
 
