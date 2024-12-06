@@ -20,7 +20,7 @@ class Consulta extends Component {
 
   componentDidMount() {
     // Conectar ao servidor Socket.IO
-    this.socket = io('http://localhost:3001'); // Endereço do servidor Socket.IO
+    this.socket = io('http://46.202.146.90/:3001'); // Endereço do servidor Socket.IO
 
     // Ouvir as tentativas do backend
     this.socket.on('attempt', (attempt) => {
