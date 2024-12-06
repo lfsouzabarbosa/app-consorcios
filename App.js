@@ -408,7 +408,7 @@ app.post('/api/consultar', async (req, res) => {
   let browser;
   try {
     browser = await puppeteer.launch({
-      headless: false, // Para facilitar o debug, o navegador será exibido
+      headless: "new", // Para facilitar o debug, o navegador será exibido
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
