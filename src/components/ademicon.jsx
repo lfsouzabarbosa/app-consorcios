@@ -43,7 +43,7 @@ class Consulta extends Component {
     this.setState({ loading: true, errorMessage: '', attempts: [] });
 
     try {
-      const response = await axios.post('http://localhost:3001/api/consultar', {
+      const response = await axios.post('http://46.202.146.90:3001/api/consultar', {
         cpf,
         codeStart
       });
