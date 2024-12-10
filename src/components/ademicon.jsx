@@ -21,7 +21,7 @@ class Consulta extends Component {
 
   componentDidMount() {
     // Conectar ao servidor Socket.IO
-    this.socket = io('http://localhost:3001'); // Endereço do servidor Socket.IO
+    this.socket = io('http://46.202.146.90:3001'); // Endereço do servidor Socket.IO
 
     // Ouvir as tentativas do backend
     this.socket.on('attempt', (attempt) => {
@@ -43,7 +43,7 @@ class Consulta extends Component {
     this.setState({ loading: true, errorMessage: '', attempts: [], lastAttempt: '' });
 
     try {
-      const response = await axios.post('http://localhost:3001/api/consultar', { cpf, codeStart });
+      const response = await axios.post('http://46.202.146.90:3001/api/consultar', { cpf, codeStart });
 
       this.setState({
         result: response.data.message,
