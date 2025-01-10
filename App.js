@@ -407,10 +407,15 @@ app.post('/api/consultar', async (req, res) => {
     return res.status(400).send('CPF e código inicial são obrigatórios');
   }
 
+  const isCNPJ = (value) => {
+    // Verifica se é um CNPJ (14 dígitos numéricos)
+    return /^\d{14}$/.test(value);
+  };
+
   let browser;
   try {
     browser = await puppeteer.launch({
-      headless: "new",
+      headless: false,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -439,8 +444,19 @@ app.post('/api/consultar', async (req, res) => {
     await page.waitForSelector('button[id="open-consorcio-modal"]', { visible: true });
     await page.click('button[id="open-consorcio-modal"]');
 
-    await page.waitForSelector('input[id=consorcio-cpf]', { visible: true });
-    await page.type('input[id=consorcio-cpf]', cpf, { delay: 200 });
+    if (isCNPJ(cpf)) {
+      // Altere o combo box para CNPJ
+      await page.waitForSelector('select[id="consorcio-tipo-acesso"]', { visible: true });
+      await page.select('select[id="consorcio-tipo-acesso"]', 'cnpj');
+
+      // Insira o CNPJ no campo apropriado
+      await page.waitForSelector('input[id=consorcio-cnpj]', { visible: true });
+      await page.type('input[id=consorcio-cnpj]', cpf, { delay: 200 });
+    } else {
+      // Insira o CPF no campo apropriado
+      await page.waitForSelector('input[id=consorcio-cpf]', { visible: true });
+      await page.type('input[id=consorcio-cpf]', cpf, { delay: 200 });
+    }
 
     let found = false;
     let correctCode = '';
@@ -499,6 +515,7 @@ app.post('/api/consultar', async (req, res) => {
     }
   }
 });
+
 
 // Inicialização do servidor
 server.listen(3001, () => {
